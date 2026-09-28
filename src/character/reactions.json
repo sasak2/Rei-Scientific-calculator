@@ -1,0 +1,12 @@
+{
+  "note": "이벤트 카테고리 → 포즈 풀. hold(ms) 후 idle 포즈로 돌아간다. 풀에서 직전 포즈는 다시 고르지 않는다.",
+  "idle": "rest",
+  "groups": {
+    "digit": { "poses": ["digit_point", "digit_count"], "hold": 1800 },
+    "operator": { "poses": ["operator_tilt", "digit_count"], "hold": 1800 },
+    "function": { "poses": ["operator_tilt", "digit_point"], "hold": 1800 },
+    "equals": { "poses": ["announce"], "hold": 3500 },
+    "clear": { "poses": ["rest"] },
+    "error": { "poses": ["troubled"], "hold": 3500 }
+  }
+}

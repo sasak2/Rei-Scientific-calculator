@@ -1,0 +1,11 @@
+/* 폰트는 모두 npm 패키지에서 번들링해 로컬로 서빙한다 (SIL Open Font License 1.1). */
+@import '@fontsource/share-tech-mono/400.css';
+@import 'pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css';
+
+@font-face {
+  font-family: 'DSEG7 Classic';
+  src: url('../../node_modules/dseg/fonts/DSEG7-Classic/DSEG7Classic-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}

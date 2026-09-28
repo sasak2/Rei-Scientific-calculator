@@ -1,0 +1,16 @@
+{
+  "id": "digit_count",
+  "note": "왼손을 가슴 앞으로 들어 세는 듯한 자세",
+  "bones": {
+    "leftUpperArm": [0, -25, -68],
+    "leftLowerArm": [0, -105, 0],
+    "leftHand": [0, 0, 10],
+    "rightUpperArm": [0, 0, 72],
+    "rightLowerArm": [0, 12, 0],
+    "head": [6, 10, 6],
+    "spine": [0, 4, 0]
+  },
+  "expression": { "relaxed": 0.3 },
+  "duration": 200,
+  "easing": "easeOutCubic"
+}

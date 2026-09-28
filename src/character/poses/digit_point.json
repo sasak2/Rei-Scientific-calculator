@@ -1,0 +1,15 @@
+{
+  "id": "digit_point",
+  "note": "오른손을 앞으로 내밀어 가리키기",
+  "bones": {
+    "rightUpperArm": [0, 60, 35],
+    "rightLowerArm": [0, 15, 0],
+    "leftUpperArm": [0, 0, -72],
+    "leftLowerArm": [0, -12, 0],
+    "head": [4, -8, -5],
+    "spine": [0, -4, 0]
+  },
+  "expression": { "happy": 0.35 },
+  "duration": 200,
+  "easing": "easeOutCubic"
+}

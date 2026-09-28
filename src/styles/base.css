@@ -1,0 +1,624 @@
+* {
+  box-sizing: border-box;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background: var(--color-bg-dark);
+  color: var(--color-text);
+  font-family: var(--font-ui);
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+}
+
+button,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+#app {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+}
+
+.bg-gradient {
+  position: absolute;
+  inset: 0;
+  background: var(--color-bg-gradient);
+}
+
+#wave-bg,
+#stage {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* ------------------------------------------------------------ 모델 없을 때 실루엣 */
+.silhouette {
+  position: absolute;
+  top: calc(4vh + env(safe-area-inset-top));
+  left: 50%;
+  transform: translateX(-50%);
+  /* UI 위 빈 공간(--free-top) 안에 들어가도록 높이를 맞춘다 */
+  height: clamp(80px, calc(var(--free-top, 40vh) - 4vh - 12px), 280px);
+  color: var(--color-primary);
+  opacity: 0.5;
+  text-align: center;
+  pointer-events: none;
+  transition: opacity 0.4s;
+}
+.silhouette svg {
+  height: calc(100% - 20px);
+  display: block;
+  margin: 0 auto;
+}
+.sil-wave {
+  stroke-dasharray: 8 6;
+  animation: sil-flow 1.6s linear infinite;
+}
+.sil-hint {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--color-text-dim);
+  white-space: nowrap;
+}
+#app.has-model .silhouette {
+  opacity: 0;
+}
+@keyframes sil-flow {
+  to {
+    stroke-dashoffset: -28;
+  }
+}
+
+/* ------------------------------------------------------------ UI 컨테이너 */
+.ui {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  margin: 0 auto;
+  max-width: 520px;
+  padding: 0 12px calc(10px + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition:
+    opacity 0.3s,
+    transform 0.3s;
+}
+#app.ui-hidden .ui {
+  opacity: 0;
+  transform: translateY(24px);
+  pointer-events: none;
+}
+
+.panel-glass {
+  background: var(--color-panel);
+  backdrop-filter: blur(var(--panel-blur));
+  -webkit-backdrop-filter: blur(var(--panel-blur));
+}
+
+/* ------------------------------------------------------------ 디스플레이 */
+.display {
+  position: relative;
+  padding: 6px 12px 8px;
+  border-radius: var(--radius-panel);
+  border: 1px solid rgba(255, 113, 0, 0.35);
+  background-color: var(--color-panel);
+  /* 옅은 오실로스코프 격자 */
+  background-image:
+    linear-gradient(var(--color-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-grid) 1px, transparent 1px);
+  background-size: 12px 12px;
+  backdrop-filter: blur(var(--panel-blur));
+  -webkit-backdrop-filter: blur(var(--panel-blur));
+  box-shadow:
+    0 0 18px rgba(255, 113, 0, 0.12),
+    inset 0 0 24px rgba(0, 0, 0, 0.35);
+}
+
+.lcd-status {
+  display: flex;
+  gap: 7px;
+  font-family: var(--font-expr);
+  font-size: 11px;
+  line-height: 14px;
+  color: var(--color-lcd-off);
+  user-select: none;
+}
+.lcd-status .lit {
+  color: var(--color-text-dim);
+}
+.lcd-status .ind-shift.lit {
+  color: var(--color-shift);
+  text-shadow: 0 0 6px var(--color-primary-glow);
+}
+.lcd-status .ind-alpha.lit {
+  color: var(--color-alpha);
+  text-shadow: 0 0 6px rgba(77, 216, 230, 0.6);
+}
+.lcd-status .spacer {
+  flex: 1;
+}
+
+.lcd-expr {
+  height: 30px;
+  margin-top: 2px;
+  font-family: var(--font-expr);
+  font-size: 21px;
+  line-height: 30px;
+  white-space: pre;
+  overflow: hidden;
+  scrollbar-width: none;
+}
+.lcd-cursor {
+  display: inline-block;
+  width: 2px;
+  height: 22px;
+  margin: 0 -1px;
+  vertical-align: -4px;
+  background: var(--color-primary);
+  box-shadow: 0 0 6px var(--color-primary-glow);
+  animation: cursor-blink 1s steps(1) infinite;
+}
+@keyframes cursor-blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+.lcd-result {
+  height: 46px;
+  text-align: right;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.lcd-result .num {
+  display: inline-flex;
+  align-items: flex-start;
+}
+.seg {
+  position: relative;
+  display: inline-block;
+  font-family: var(--font-seg);
+  font-size: 34px;
+  line-height: 46px;
+}
+.seg-ghost {
+  color: var(--color-lcd-off);
+}
+.seg-lit {
+  position: absolute;
+  right: 0;
+  top: 0;
+  color: var(--color-text);
+  text-shadow: 0 0 10px rgba(255, 113, 0, 0.45);
+}
+.x10 {
+  margin-left: 6px;
+  font-family: var(--font-expr);
+  font-size: 20px;
+  line-height: 46px;
+}
+.seg-exp {
+  font-family: var(--font-seg);
+  font-size: 15px;
+  line-height: 20px;
+  margin-left: 2px;
+  color: var(--color-text);
+}
+.lcd-result.is-error {
+  font-family: var(--font-expr);
+  font-size: 24px;
+  line-height: 46px;
+  color: var(--color-error);
+  text-shadow: 0 0 10px rgba(255, 77, 94, 0.5);
+}
+
+/* ------------------------------------------------------------ 키패드 */
+.keypad {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.keys {
+  display: grid;
+  grid-template-columns: repeat(var(--cols), 1fr);
+  gap: 6px;
+}
+.keys-control .key {
+  height: clamp(30px, 4.2vh, 38px);
+  font-size: 12px;
+}
+.keys-sci {
+  gap: 5px;
+}
+.keys-sci .key {
+  height: clamp(34px, 5vh, 46px);
+  font-size: 14px;
+}
+.keys-basic .key {
+  height: clamp(42px, 6.4vh, 58px);
+  font-size: 20px;
+}
+.keys-basic .key-clear .key-main,
+.keys-basic .key-fn .key-main {
+  font-size: 16px;
+}
+
+.key {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border-radius: var(--radius-key);
+  border: 1px solid var(--border, var(--key-border-digit));
+  background: var(--key-bg);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 0 8px var(--glow, transparent);
+  cursor: pointer;
+  overflow: hidden;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  transition:
+    background 0.12s,
+    box-shadow 0.12s,
+    transform 0.08s;
+}
+.key:focus-visible {
+  outline: 2px solid var(--color-alpha);
+  outline-offset: 1px;
+}
+.key-main {
+  position: relative;
+  z-index: 1;
+  white-space: nowrap;
+}
+.key:has(.key-sub) .key-main {
+  margin-top: 9px;
+}
+.key-sub {
+  position: absolute;
+  top: 2px;
+  left: 5px;
+  right: 5px;
+  display: flex;
+  justify-content: space-between;
+  gap: 2px;
+  font-size: 9px;
+  line-height: 11px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.keys-basic .key-sub {
+  font-size: 10px;
+}
+.lbl-shift {
+  color: var(--color-shift);
+  opacity: 0.7;
+}
+.lbl-alpha {
+  color: var(--color-alpha);
+  opacity: 0.7;
+}
+
+/* 키 종류별 테두리 */
+.key-digit {
+  --border: rgba(201, 204, 211, 0.55);
+}
+.key-op {
+  --border: var(--key-border-op);
+  --glow: rgba(255, 113, 0, 0.3);
+}
+.key-fn {
+  --border: rgba(255, 176, 102, 0.55);
+}
+.key-ctrl {
+  --border: var(--key-border-ctrl);
+  color: var(--color-text-dim);
+}
+.key-clear {
+  --border: var(--key-border-fn);
+  color: var(--key-border-fn);
+}
+.key-eq {
+  --border: var(--color-primary);
+  --glow: var(--color-primary-glow);
+  background: var(--color-primary);
+  color: var(--color-bg-dark);
+  font-weight: 700;
+  box-shadow:
+    0 0 16px var(--color-primary-glow),
+    0 0 4px var(--color-primary);
+}
+.key-todo .key-main {
+  opacity: 0.4;
+}
+
+/* 누름 상태 */
+.key:active,
+.key.pulse {
+  background: var(--key-bg-active);
+  transform: scale(0.97);
+}
+.key-eq:active,
+.key-eq.pulse {
+  background: #ff8a2a;
+}
+/* 파형 펄스: 키 안쪽을 사인파가 한 번 훑고 지나간다 */
+.key::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 20' preserveAspectRatio='none'%3E%3Cpath d='M0 10c5-8 10-8 10 0s5 8 10 0 5-8 10 0 5 8 10 0' fill='none' stroke='%23ff7100' stroke-width='1.6'/%3E%3C/svg%3E")
+    repeat-x center / 40px 60%;
+  opacity: 0;
+  pointer-events: none;
+}
+.key.pulse::after {
+  animation: key-wave 0.38s ease-out;
+}
+@keyframes key-wave {
+  0% {
+    opacity: 0.9;
+    transform: translateX(-30%);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(30%);
+  }
+}
+
+/* SHIFT/ALPHA 레이어 */
+.key.on {
+  background: rgba(255, 176, 102, 0.22);
+  color: var(--color-text);
+}
+#keypad .key-ctrl[data-key='alpha'].on {
+  background: rgba(77, 216, 230, 0.2);
+}
+.layer-shift .lbl-shift,
+.layer-alpha .lbl-alpha {
+  opacity: 1;
+  font-weight: 600;
+  text-shadow: 0 0 6px currentColor;
+}
+.layer-shift .key:has(.lbl-shift:not(:empty)) .key-main,
+.layer-alpha .key:has(.lbl-alpha:not(:empty)) .key-main {
+  opacity: 0.35;
+}
+
+/* ------------------------------------------------------------ 보조 버튼 */
+.side {
+  position: absolute;
+  top: calc(10px + env(safe-area-inset-top));
+  right: 8px;
+  /* 오른쪽 세로 줄. UI 위 빈 공간(--free-top, JS가 갱신)보다 길면 왼쪽으로 한 줄 더 접힌다 */
+  max-height: calc(var(--free-top, 100vh) - 16px - env(safe-area-inset-top));
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap-reverse;
+  align-content: flex-start;
+  gap: 6px;
+  z-index: 5;
+}
+.side-btn {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 113, 0, 0.4);
+  background: var(--color-panel);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: var(--color-text);
+  cursor: pointer;
+}
+.side-btn:hover {
+  box-shadow: 0 0 10px var(--color-primary-glow);
+}
+.side-btn svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.side-btn[aria-pressed='true'] {
+  color: var(--color-primary);
+}
+.side-btn .snd-off,
+.side-btn[aria-pressed='true'] .snd-on {
+  display: none;
+}
+.side-btn[aria-pressed='true'] .snd-off {
+  display: inline;
+}
+#app.ui-hidden #btn-hide {
+  color: var(--color-primary);
+  box-shadow: 0 0 10px var(--color-primary-glow);
+}
+
+/* ------------------------------------------------------------ 토스트, 드롭, 다이얼로그 */
+.toast {
+  position: absolute;
+  left: 50%;
+  top: 36%;
+  transform: translate(-50%, 8px);
+  max-width: min(86vw, 360px);
+  padding: 8px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 113, 0, 0.4);
+  background: var(--color-panel-strong);
+  backdrop-filter: blur(10px);
+  font-size: 13px;
+  text-align: center;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 0.2s,
+    transform 0.2s;
+  z-index: 10;
+}
+.toast.show {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+.drop-overlay {
+  position: absolute;
+  inset: 12px;
+  display: grid;
+  place-items: center;
+  border: 2px dashed var(--color-primary);
+  border-radius: 20px;
+  background: rgba(22, 23, 26, 0.7);
+  font-size: 16px;
+  z-index: 20;
+}
+
+.dlg {
+  width: min(92vw, 380px);
+  padding: 18px 18px 14px;
+  border-radius: var(--radius-panel);
+  border: 1px solid rgba(255, 113, 0, 0.45);
+  background: var(--color-panel-strong);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  color: var(--color-text);
+  box-shadow: 0 0 30px rgba(255, 113, 0, 0.15);
+}
+.dlg::backdrop {
+  background: rgba(0, 0, 0, 0.5);
+}
+.dlg h2 {
+  margin: 0 0 10px;
+  font-size: 18px;
+  color: var(--color-primary);
+}
+.dlg h3 {
+  margin: 14px 0 4px;
+  font-size: 14px;
+}
+.dlg p {
+  margin: 6px 0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.dlg a {
+  color: var(--color-shift);
+}
+.dlg-note {
+  font-size: 12px !important;
+  color: var(--color-text-dim);
+}
+.dlg-note.dim {
+  opacity: 0.75;
+}
+.dlg-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 10px 0;
+  font-size: 14px;
+}
+.dlg-check {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin: 10px 0;
+  font-size: 14px;
+}
+.dlg select {
+  background: var(--color-bg-dark);
+  border: 1px solid var(--key-border-ctrl);
+  border-radius: 6px;
+  padding: 4px 6px;
+}
+.dlg-btn,
+.dlg-close {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--color-primary);
+  background: var(--color-primary-soft);
+  cursor: pointer;
+}
+.dlg-status {
+  font-size: 12px;
+  color: var(--color-text-dim);
+  text-align: right;
+}
+.dlg-status.ok {
+  color: var(--color-alpha);
+}
+.dlg-close {
+  display: block;
+  margin: 14px 0 0 auto;
+  border-color: var(--key-border-ctrl);
+  background: transparent;
+}
+
+/* ------------------------------------------------------------ 데스크톱: 모델 왼쪽, 계산기 오른쪽 */
+@media (min-width: 900px) and (min-aspect-ratio: 1/1) {
+  .ui {
+    left: auto;
+    right: 72px;
+    top: 50%;
+    bottom: auto;
+    margin: 0;
+    width: 440px;
+    padding: 0;
+    transform: translateY(-50%);
+  }
+  #app.ui-hidden .ui {
+    transform: translateY(calc(-50% + 24px));
+  }
+  .side {
+    top: 50%;
+    right: 14px;
+    max-height: none;
+    transform: translateY(-50%);
+  }
+  .silhouette {
+    left: 30%;
+    top: 22vh;
+    height: min(50vh, 360px);
+  }
+  .keys-basic .key {
+    height: 54px;
+  }
+  .keys-sci .key {
+    height: 42px;
+  }
+  .keys-control .key {
+    height: 36px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .key.pulse::after,
+  .sil-wave,
+  .lcd-cursor {
+    animation: none;
+  }
+}

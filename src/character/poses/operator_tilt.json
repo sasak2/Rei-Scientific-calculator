@@ -1,0 +1,14 @@
+{
+  "id": "operator_tilt",
+  "note": "고개를 갸웃하며 한 손을 살짝 듦",
+  "bones": {
+    "rightUpperArm": [0, 25, 55],
+    "rightLowerArm": [0, 70, 0],
+    "head": [0, 0, 12],
+    "neck": [0, 0, 4],
+    "spine": [0, 0, -3]
+  },
+  "expression": { "surprised": 0.2 },
+  "duration": 220,
+  "easing": "easeOutCubic"
+}

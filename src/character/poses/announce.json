@@ -1,0 +1,17 @@
+{
+  "id": "announce",
+  "note": "= : 양팔을 벌려 결과 발표",
+  "bones": {
+    "leftUpperArm": [0, -25, -35],
+    "rightUpperArm": [0, 25, 35],
+    "leftLowerArm": [0, -35, 0],
+    "rightLowerArm": [0, 35, 0],
+    "leftHand": [0, 0, 15],
+    "rightHand": [0, 0, -15],
+    "head": [-6, 0, 0],
+    "chest": [-3, 0, 0]
+  },
+  "expression": { "happy": 0.9 },
+  "duration": 280,
+  "easing": "easeOutCubic"
+}

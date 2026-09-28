@@ -1,0 +1,49 @@
+/*
+ * 아다치 레이 테마 — 색은 모두 여기서만 정의한다.
+ * 다른 테마를 만들려면 이 블록을 복사해 값만 바꾸면 된다.
+ */
+:root {
+  /* 대표색 */
+  --color-primary: #ff7100;
+  --color-primary-glow: rgba(255, 113, 0, 0.6);
+  --color-primary-soft: rgba(255, 113, 0, 0.16);
+
+  /* 배경 */
+  --color-bg-dark: #16171a;
+  --color-bg-top: #16171a;
+  --color-bg-bottom: #2a2c31;
+  --color-bg-gradient: linear-gradient(180deg, var(--color-bg-top) 0%, #1e2024 55%, var(--color-bg-bottom) 100%);
+
+  /* 반투명 패널 */
+  --color-panel: rgba(22, 23, 26, 0.55);
+  --color-panel-strong: rgba(22, 23, 26, 0.78);
+  --panel-blur: 14px;
+  --color-grid: rgba(255, 113, 0, 0.08);
+
+  /* 텍스트 */
+  --color-text: #f2f2f2;
+  --color-text-dim: #9a9ca3;
+  --color-lcd-off: rgba(242, 242, 242, 0.07); /* 꺼진 7세그먼트 */
+
+  /* 키 테두리 (종류별) */
+  --key-border-digit: #c9ccd3;
+  --key-border-op: #ff7100;
+  --key-border-fn: #ffb066;
+  --key-border-ctrl: #6b6e76;
+  --key-bg: rgba(22, 23, 26, 0.5);
+  --key-bg-active: rgba(255, 113, 0, 0.22);
+
+  /* SHIFT / ALPHA 레이어 */
+  --color-shift: #ffb066;
+  --color-alpha: #4dd8e6; /* 주황의 보색 계열 + 오실로스코프 트레이스 느낌 */
+
+  --color-error: #ff4d5e;
+
+  /* 폰트 */
+  --font-ui: 'Pretendard Variable', Pretendard, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-expr: 'Share Tech Mono', 'Cambria Math', 'Segoe UI Symbol', monospace;
+  --font-seg: 'DSEG7 Classic', 'Share Tech Mono', monospace;
+
+  --radius-key: 10px;
+  --radius-panel: 16px;
+}

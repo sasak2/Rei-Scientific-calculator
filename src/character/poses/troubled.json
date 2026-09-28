@@ -1,0 +1,16 @@
+{
+  "id": "troubled",
+  "note": "에러: 고개를 숙이고 곤란한 표정",
+  "bones": {
+    "leftUpperArm": [0, -30, -62],
+    "rightUpperArm": [0, 30, 62],
+    "leftLowerArm": [0, -60, 0],
+    "rightLowerArm": [0, 60, 0],
+    "head": [14, 0, -10],
+    "neck": [4, 0, 0],
+    "spine": [4, 0, 0]
+  },
+  "expression": { "sad": 0.8 },
+  "duration": 260,
+  "easing": "easeOutCubic"
+}

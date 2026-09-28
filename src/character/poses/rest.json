@@ -1,0 +1,15 @@
+{
+  "id": "rest",
+  "note": "기본 대기 자세. 다른 포즈에 없는 본은 이 값으로 돌아간다.",
+  "bones": {
+    "leftUpperArm": [0, 0, -70],
+    "rightUpperArm": [0, 0, 70],
+    "leftLowerArm": [0, -12, 0],
+    "rightLowerArm": [0, 12, 0],
+    "leftHand": [0, 0, -5],
+    "rightHand": [0, 0, 5]
+  },
+  "expression": {},
+  "duration": 300,
+  "easing": "easeInOutCubic"
+}
