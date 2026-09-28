@@ -65,7 +65,7 @@
           <button type="button" class="dlg-btn" id="load-voice">UTAU 음원 폴더 선택</button>
           <span class="dlg-status" id="status-voice">없음</span>
         </div>
-        <p class="dlg-note dim">음성 재생은 다음 단계에서 구현합니다. 지금은 폴더를 인식하는지만 확인합니다.</p>
+        <p class="dlg-note dim">음원은 oto.ini가 들어 있는 UTAU 음원 폴더를 통째로 고르면 됩니다.</p>
         <form method="dialog"><button class="dlg-close">닫기</button></form>
       </dialog>
 
@@ -79,7 +79,19 @@
             <option value="2">높음</option>
           </select>
         </label>
-        <p class="dlg-note dim">각도 단위, 표시 형식 등 계산기 설정은 실기처럼 SHIFT → MODE(SETUP)로 바꿀 수 있게 다음 단계에서 추가합니다.</p>
+        <h3>음성</h3>
+        <label class="dlg-check"><input type="checkbox" id="set-read-keys" /> 누른 키 읽기</label>
+        <label class="dlg-check"><input type="checkbox" id="set-read-result" /> 계산 결과 읽기</label>
+        <label class="dlg-row">결과 읽는 방식
+          <select id="set-reading">
+            <option value="numeral">수사로 (せんにひゃく…)</option>
+            <option value="digits">한 자리씩 (いち に…)</option>
+          </select>
+        </label>
+        <label class="dlg-row">음량 <input type="range" id="set-volume" min="0" max="1" step="0.05" /></label>
+        <label class="dlg-row">말하기 속도 <input type="range" id="set-speed" min="80" max="200" step="10" title="왼쪽이 빠름" /></label>
+        <button type="button" class="dlg-btn" id="set-test-voice">목소리 들어 보기</button>
+        <p class="dlg-note dim">각도 단위, 표시 형식 등 계산기 설정은 실기처럼 SHIFT → MODE(SETUP)에서 바꿉니다.</p>
         <form method="dialog"><button class="dlg-close">닫기</button></form>
       </dialog>
 

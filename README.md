@@ -30,6 +30,7 @@ npm run build        # 타입 검사 → 빌드 → dist에 모델/음원이 없
 | `src/engine/` | 순수 TS 계산 엔진 (DOM 의존 없음): 입력 트리 → 토크나이저 → Pratt 파서 → AST → 평가기, 하이브리드 수치(BigInt 유리수 + 15자리 double) |
 | `src/ui/` | 디스플레이, 키패드(배치는 `keypad/layout.ts` 데이터), 배경 이펙트 |
 | `src/character/` | three.js + three-vrm 스테이지, 포즈 slerp 보간, 표정, 호흡/깜빡임. 포즈는 `poses/*.json`, 반응은 `reactions.json` |
+| `src/voice/` | UTAU 음성: oto.ini 파서, 모라 분할, 일본어 수사 읽기, 조각 연결 계획, Web Audio 재생. 읽는 말은 `reading.ts` 표에서 바꾼다 |
 | `src/assets-loader/` | dev 자동 로드 / 파일 선택 / 드래그 앤 드롭 |
 | `src/styles/theme.css` | 색 테마 CSS 변수 |
 

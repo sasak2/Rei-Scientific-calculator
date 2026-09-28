@@ -120,3 +120,152 @@ export function div(a: Value, b: Value): Value {
 export function reciprocal(a: Value): Value {
   return div(ONE, a);
 }
+
+// ---------------------------------------------------------------- 비교 · 판정
+
+export function sign(v: Value): -1 | 0 | 1 {
+  const s = v.k === 'rat' ? (v.n > 0n ? 1 : v.n < 0n ? -1 : 0) : Math.sign(v.x);
+  return s as -1 | 0 | 1;
+}
+
+/** 정수이면 BigInt, 아니면 null. real도 정확히 정수면 인정한다(예: sin⁻¹ 결과 30). */
+export function asInteger(v: Value): bigint | null {
+  if (v.k === 'rat') return v.d === 1n ? v.n : null;
+  return Number.isInteger(v.x) && Math.abs(v.x) < 2 ** 53 ? BigInt(v.x) : null;
+}
+
+export function isInteger(v: Value): boolean {
+  return asInteger(v) !== null;
+}
+
+// ---------------------------------------------------------------- 거듭제곱 · 거듭제곱근
+
+/** 정수 제곱근 (뉴턴법). 완전제곱 판정에 쓴다. */
+function isqrt(n: bigint): bigint {
+  if (n < 2n) return n;
+  let x = BigInt(Math.floor(Math.sqrt(Number(n))));
+  // double로 얻은 근삿값을 정수 뉴턴 반복으로 보정: x ← (x + n/x) / 2
+  for (;;) {
+    const y = (x + n / x) >> 1n;
+    if (y >= x && y * y <= n) {
+      while ((x + 1n) * (x + 1n) <= n) x++;
+      while (x * x > n) x--;
+      return x;
+    }
+    x = y;
+  }
+}
+
+/** 정수 k제곱근이 정확히 존재하면 반환 */
+function exactRoot(n: bigint, k: number): bigint | null {
+  if (n < 0n) return null;
+  if (k === 2) {
+    const r = isqrt(n);
+    return r * r === n ? r : null;
+  }
+  const r = BigInt(Math.round(Number(n) ** (1 / k)));
+  for (const c of [r - 1n, r, r + 1n]) if (c >= 0n && c ** BigInt(k) === n) return c;
+  return null;
+}
+
+/**
+ * √ : 유리수의 분자·분모가 모두 완전제곱이면 정확한 유리수로 (√(4/9) = 2/3).
+ * 음수는 COMP 모드에서 Math ERROR (복소수는 CMPLX 모드, 3단계).
+ */
+export function sqrt(v: Value): Value {
+  if (sign(v) < 0) throw new CalcError('math');
+  if (v.k === 'rat') {
+    const n = exactRoot(v.n, 2);
+    const d = exactRoot(v.d, 2);
+    if (n !== null && d !== null) return rat(n, d);
+  }
+  return real(Math.sqrt(toNumber(v)));
+}
+
+/** k제곱근 (k는 정수). 홀수 제곱근은 음수도 허용: ∛(-8) = -2 */
+export function nthRoot(v: Value, k: bigint): Value {
+  if (k === 0n) throw new CalcError('math');
+  if (k < 0n) return reciprocal(nthRoot(v, -k));
+  const odd = k % 2n === 1n;
+  const s = sign(v);
+  if (s < 0 && !odd) throw new CalcError('math');
+  if (s === 0) return ZERO;
+  const kn = Number(k);
+  if (v.k === 'rat' && kn <= 64) {
+    const an = v.n < 0n ? -v.n : v.n;
+    const n = exactRoot(an, kn);
+    const d = exactRoot(v.d, kn);
+    if (n !== null && d !== null) return rat(s < 0 ? -n : n, d);
+  }
+  const r = Math.abs(toNumber(v)) ** (1 / kn);
+  return real(s < 0 ? -r : r);
+}
+
+/**
+ * x^y
+ *  - y가 정수: 반복 제곱(지수가 크지 않을 때)으로 정확하게
+ *  - y가 유리수 p/q: x^(p/q) = (q제곱근 x)^p. q가 홀수면 음수 밑도 허용 ((-8)^(1/3) = -2)
+ *  - 그 외: double
+ * 0^0, 0^(음수)는 Math ERROR
+ */
+export function pow(x: Value, y: Value): Value {
+  const yi = asInteger(y);
+  if (isZero(x)) {
+    if (sign(y) <= 0) throw new CalcError('math');
+    return ZERO;
+  }
+  if (yi !== null && x.k === 'rat' && (yi < 0n ? -yi : yi) <= 400n) {
+    const e = yi < 0n ? -yi : yi;
+    const r = rat(x.n ** e, x.d ** e);
+    return yi < 0n ? reciprocal(r) : r;
+  }
+  if (y.k === 'rat' && y.d !== 1n && y.d <= 1000n) {
+    // 유리수 지수: 밑을 먼저 q제곱근
+    return pow(nthRoot(x, y.d), rat(y.n));
+  }
+  const xv = toNumber(x);
+  const yv = toNumber(y);
+  if (xv < 0 && yi === null) throw new CalcError('math');
+  return real(xv ** yv);
+}
+
+// ---------------------------------------------------------------- 실수 → 분수 근사
+
+/**
+ * 연분수 전개로 double을 분모가 작은 분수로 되돌린다.
+ * 예) 0.333333333333333 (15자리) → 1/3
+ *
+ * x = a0 + 1/(a1 + 1/(a2 + …)) 로 전개하면서 수렴분수 h/k 를 만든다:
+ *   h_n = a_n·h_{n-1} + h_{n-2},  k_n = a_n·k_{n-1} + k_{n-2}
+ * 수렴분수는 주어진 분모 한계에서 가장 좋은 근사라서, 상대오차가 15자리 반올림 오차
+ * 수준(tol) 안에 들어오는 첫 수렴분수를 채택한다.
+ */
+export function rationalize(x: number, maxDen = 10n ** 10n, tol = 5e-15): Rat | null {
+  if (!Number.isFinite(x)) return null;
+  if (Number.isInteger(x) && Math.abs(x) < 1e15) return { k: 'rat', n: BigInt(x), d: 1n };
+  const neg = x < 0;
+  let r = Math.abs(x);
+  let [h0, h1] = [0n, 1n];
+  let [k0, k1] = [1n, 0n];
+  for (let iter = 0; iter < 64; iter++) {
+    const a = Math.floor(r);
+    if (a > 1e15) break;
+    const ab = BigInt(a);
+    [h0, h1] = [h1, ab * h1 + h0];
+    [k0, k1] = [k1, ab * k1 + k0];
+    if (k1 > maxDen) return null;
+    const approx = Number(h1) / Number(k1);
+    if (Math.abs(approx - Math.abs(x)) <= tol * Math.abs(x)) {
+      return { k: 'rat', n: neg ? -h1 : h1, d: k1 };
+    }
+    const frac = r - a;
+    if (frac < 1e-18) break;
+    r = 1 / frac;
+  }
+  return null;
+}
+
+/** 값의 정확한 유리수 표현 (rat은 그대로, real은 연분수로 추정) */
+export function asRational(v: Value): Rat | null {
+  return v.k === 'rat' ? v : rationalize(v.x);
+}

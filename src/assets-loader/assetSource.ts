@@ -14,8 +14,12 @@ export interface VoiceFiles {
 
 export interface DevAssets {
   modelUrl: string | null;
-  voicePaths: string[];
+  /** assets/ 기준 oto.ini 경로 (예: voice/oto.ini) */
+  otoPath: string | null;
 }
+
+/** 개발 서버에서 assets/ 파일을 읽는 URL 접두어 */
+export const DEV_ASSET_BASE = '/__local-assets/';
 
 /** 개발 서버에서만 로컬 assets/ 목록을 가져온다. 프로덕션 빌드에서는 코드째 제거된다. */
 export async function loadDevAssets(): Promise<DevAssets | null> {
@@ -25,9 +29,13 @@ export async function loadDevAssets(): Promise<DevAssets | null> {
     if (!res.ok) return null;
     const { files } = (await res.json()) as { files: string[] };
     const model = files.find((f) => f.toLowerCase().endsWith('.vrm'));
+    // 이름이 정확히 oto.ini 인 것 중 가장 얕은 경로 (tmp-…-oto.ini 같은 백업 파일 제외)
+    const oto = files
+      .filter((f) => f.split('/').pop()!.toLowerCase() === 'oto.ini')
+      .sort((a, b) => a.split('/').length - b.split('/').length)[0];
     return {
       modelUrl: model ? `/__local-assets/${model.split('/').map(encodeURIComponent).join('/')}` : null,
-      voicePaths: files.filter((f) => /\.(wav|ini)$/i.test(f)),
+      otoPath: oto ?? null,
     };
   } catch {
     return null;
@@ -61,8 +69,11 @@ export function pickDirectory(): Promise<File[]> {
 
 /** 파일 목록에서 음원(oto.ini가 있는 폴더)을 추려 낸다 */
 export function collectVoice(files: File[]): VoiceFiles | null {
-  const rel = (f: File) => (f as File & { relPath?: string }).relPath ?? f.webkitRelativePath ?? f.name;
-  const oto = files.find((f) => f.name.toLowerCase() === 'oto.ini');
+  const rel = (f: File) => (f as File & { relPath?: string }).relPath || f.webkitRelativePath || f.name;
+  // 하위 폴더에 샘플용 oto.ini가 더 있을 수 있으므로 가장 얕은 것을 고른다
+  const oto = files
+    .filter((f) => f.name.toLowerCase() === 'oto.ini')
+    .sort((a, b) => rel(a).split('/').length - rel(b).split('/').length)[0];
   if (!oto) return null;
   const otoPath = rel(oto);
   const base = otoPath.slice(0, otoPath.length - oto.name.length);

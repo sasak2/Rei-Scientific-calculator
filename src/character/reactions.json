@@ -4,9 +4,12 @@
   "groups": {
     "digit": { "poses": ["digit_point", "digit_count"], "hold": 1800 },
     "operator": { "poses": ["operator_tilt", "digit_count"], "hold": 1800 },
-    "function": { "poses": ["operator_tilt", "digit_point"], "hold": 1800 },
-    "equals": { "poses": ["announce"], "hold": 3500 },
+    "function": { "poses": ["think_chin", "operator_tilt", "digit_point"], "hold": 1800 },
+    "equals": { "poses": ["announce", "announce_raise"], "hold": 3500 },
     "clear": { "poses": ["rest"] },
-    "error": { "poses": ["troubled"], "hold": 3500 }
+    "error": { "poses": ["troubled"], "hold": 3500 },
+    "modifier": { "poses": ["ready_fists"], "hold": 2500 },
+    "menu": { "poses": ["think_chin"], "hold": 4000 },
+    "memory": { "poses": ["memory_store"], "hold": 2500 }
   }
 }

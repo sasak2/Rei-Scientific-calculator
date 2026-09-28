@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { Calculator } from '../calculator';
 import { linearCells } from '../input/editor';
-import { run, type } from './helpers';
+import { run, shown, type } from './helpers';
 
 const text = (c: Calculator) => linearCells(c.editor, false).join('');
 
@@ -129,7 +129,7 @@ describe('히스토리', () => {
     type(c, '2+2=');
     c.press('up');
     expect(text(c)).toBe('1+1');
-    expect(c.result?.formatted.mantissa).toBe('2');
+    expect(shown(c)).toBe('2');
     c.press('down');
     expect(text(c)).toBe('2+2');
   });

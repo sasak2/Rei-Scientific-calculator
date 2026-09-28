@@ -207,25 +207,91 @@ select {
   color: var(--color-text);
   text-shadow: 0 0 10px rgba(255, 113, 0, 0.45);
 }
-.x10 {
-  margin-left: 6px;
+.sym {
+  margin: 0 3px;
   font-family: var(--font-expr);
   font-size: 20px;
   line-height: 46px;
+  color: var(--color-text-dim);
 }
-.seg-exp {
-  font-family: var(--font-seg);
+.sym-frac {
+  display: inline-block;
+  width: 9px;
+  height: 16px;
+  margin: 16px 4px 0;
+  border-right: 2px solid var(--color-text-dim);
+  border-bottom: 2px solid var(--color-text-dim);
+}
+.seg.seg-exp {
   font-size: 15px;
-  line-height: 20px;
-  margin-left: 2px;
-  color: var(--color-text);
+  line-height: 22px;
+  margin-left: 1px;
 }
-.lcd-result.is-error {
+.num.is-pair {
+  gap: 10px;
+}
+.num.is-pair .seg {
+  font-size: 22px;
+}
+.num.is-pair .sym {
+  font-size: 16px;
+  margin-left: 0;
+}
+.pair-item {
+  display: inline-flex;
+  align-items: flex-start;
+}
+.lcd-result.is-error,
+.lcd-result.is-note {
   font-family: var(--font-expr);
   font-size: 24px;
   line-height: 46px;
   color: var(--color-error);
   text-shadow: 0 0 10px rgba(255, 77, 94, 0.5);
+}
+.lcd-result.is-note {
+  font-size: 16px;
+  color: var(--color-text-dim);
+  text-shadow: none;
+}
+.lcd-cursor.is-overwrite {
+  width: 12px;
+  height: 2px;
+  margin: 0;
+  vertical-align: -3px;
+}
+
+/* 메뉴 (MODE, SETUP, hyp …) */
+.lcd-body {
+  min-height: 78px;
+}
+.lcd-menu {
+  position: relative;
+  min-height: 78px;
+  padding-top: 2px;
+  font-family: var(--font-expr);
+  font-size: 16px;
+  line-height: 22px;
+}
+.menu-title {
+  color: var(--color-shift);
+}
+.menu-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  column-gap: 12px;
+}
+.menu-mode .menu-grid,
+.menu-setup .menu-grid {
+  grid-template-columns: repeat(3, 1fr);
+  font-size: 15px;
+}
+.menu-page {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  color: var(--color-primary);
+  font-size: 12px;
 }
 
 /* ------------------------------------------------------------ 키패드 */

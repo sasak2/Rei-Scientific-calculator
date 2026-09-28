@@ -1,0 +1,15 @@
+{
+  "id": "ready_fists",
+  "note": "SHIFT/ALPHA: 양 주먹을 가슴 앞에 모으고 대기",
+  "bones": {
+    "leftUpperArm": [0, -22, -68],
+    "leftLowerArm": [0, -100, 0],
+    "rightUpperArm": [0, 22, 68],
+    "rightLowerArm": [0, 100, 0],
+    "head": [-3, 0, 0],
+    "chest": [-2, 0, 0]
+  },
+  "expression": { "surprised": 0.3 },
+  "duration": 180,
+  "easing": "easeOutCubic"
+}

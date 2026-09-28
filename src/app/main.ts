@@ -10,7 +10,15 @@ import '../styles/fonts.css';
 import '../styles/theme.css';
 import '../styles/base.css';
 
-import { collectVoice, filesFromDrop, loadDevAssets, pickDirectory, pickFile, type VoiceFiles } from '../assets-loader/assetSource';
+import {
+  collectVoice,
+  DEV_ASSET_BASE,
+  filesFromDrop,
+  loadDevAssets,
+  pickDirectory,
+  pickFile,
+  type VoiceFiles,
+} from '../assets-loader/assetSource';
 import type { ReactionKey } from '../character/character';
 import { Stage } from '../character/stage';
 import { Calculator, type CalcEvent } from '../engine/calculator';
@@ -19,6 +27,8 @@ import { Display } from '../ui/display/display';
 import { WaveBackground } from '../ui/effects/waveBackground';
 import { Keypad } from '../ui/keypad/keypad';
 import { KEYBOARD_MAP } from '../ui/keypad/layout';
+import type { ReadingStyle } from '../voice/reading';
+import { fileMapSource, urlSource, Voice, type VoiceSource } from '../voice/voice';
 import { loadSettings, saveSettings } from './settings';
 
 const $ = <T extends HTMLElement = HTMLElement>(sel: string) => document.querySelector<T>(sel)!;
@@ -47,7 +57,17 @@ try {
   // WebGL을 쓸 수 없는 환경에서도 계산기는 동작해야 한다
   console.warn('WebGL 초기화 실패: 캐릭터 없이 동작합니다', e);
 }
-let voice: VoiceFiles | null = null;
+
+const voice = new Voice({
+  style: settings.readingStyle,
+  readKeys: settings.readKeys,
+  readResult: settings.readResult,
+  volume: settings.volume,
+  muted: settings.muted,
+  moraMs: settings.moraMs,
+});
+// 음성의 모음 타임라인 → 캐릭터 입 모양
+voice.onMouth = (keys, startAt, now) => stage?.character?.speak(keys, startAt, now);
 
 // ------------------------------------------------------------------ 키 입력
 
@@ -70,6 +90,7 @@ function updateLayout(): void {
 window.addEventListener('resize', updateLayout);
 
 function press(key: PhysicalKey): void {
+  if (voice.loaded) voice.unlock(); // 브라우저 자동재생 정책: 오디오는 사용자 입력 안에서 시작해야 한다
   const events = calc.press(key);
   display.render(calc);
   for (const ev of events) handle(ev);
@@ -80,24 +101,39 @@ function handle(ev: CalcEvent): void {
     case 'input':
       wave.pulse(0.35);
       if (ev.category !== 'control') react(ev.category);
+      if (ev.token) voice.speakToken(ev.token);
       break;
     case 'result':
       wave.pulse(1);
       react('equals');
+      voice.speakResult(ev.form);
+      break;
+    case 'view':
+      wave.pulse(0.5);
+      voice.speakResult(ev.form);
       break;
     case 'error':
       wave.pulse(0.6);
       react('error');
+      voice.speakError();
       break;
     case 'clear':
       react('clear');
+      voice.stop();
       break;
     case 'modifier':
       keypad.setLayer(ev.shift, ev.alpha);
+      if (ev.shift || ev.alpha) react('modifier');
+      break;
+    case 'menu':
+      if (ev.id) react('menu');
+      break;
+    case 'memory':
+      react('memory');
       break;
     case 'unimplemented': {
-      const label = keypad.labelOf(ev.key, ev.layer);
-      const prefix = ev.layer === 'shift' ? 'SHIFT ' : ev.layer === 'alpha' ? 'ALPHA ' : '';
+      const label = ev.label ?? keypad.labelOf(ev.key, ev.layer);
+      const prefix = ev.label ? '' : ev.layer === 'shift' ? 'SHIFT ' : ev.layer === 'alpha' ? 'ALPHA ' : '';
       toast(`${prefix}${label}: 다음 단계에서 구현 예정`);
       break;
     }
@@ -162,11 +198,25 @@ async function loadModelFile(file: File): Promise<void> {
   }
 }
 
-function setVoice(v: VoiceFiles | null): void {
-  voice = v;
+async function loadVoice(source: VoiceSource, otoPath: string, label: string): Promise<boolean> {
   const status = $('#status-voice');
-  status.textContent = v ? `oto.ini + wav ${[...v.files.keys()].filter((f) => /\.wav$/i.test(f)).length}개` : '없음';
-  status.classList.toggle('ok', !!v);
+  status.textContent = '불러오는 중…';
+  status.classList.remove('ok');
+  try {
+    const n = await voice.load(source, otoPath);
+    status.textContent = `${label} · 음 ${n}개`;
+    status.classList.add('ok');
+    return true;
+  } catch (e) {
+    console.error(e);
+    status.textContent = '불러오기 실패';
+    toast('oto.ini를 읽지 못했습니다');
+    return false;
+  }
+}
+
+async function loadVoiceFiles(files: VoiceFiles): Promise<boolean> {
+  return loadVoice(fileMapSource(files.files), 'oto.ini', `wav ${[...files.files.keys()].filter((f) => /\.wav$/i.test(f)).length}개`);
 }
 
 $('#load-model').addEventListener('click', async () => {
@@ -178,7 +228,7 @@ $('#load-voice').addEventListener('click', async () => {
   if (files.length === 0) return;
   const v = collectVoice(files);
   if (!v) toast('폴더에서 oto.ini를 찾지 못했습니다');
-  else setVoice(v);
+  else await loadVoiceFiles(v);
 });
 
 // 드래그 앤 드롭 (파일/폴더)
@@ -205,19 +255,19 @@ window.addEventListener('drop', async (e) => {
   const vrm = files.find((f) => f.name.toLowerCase().endsWith('.vrm'));
   if (vrm) await loadModelFile(vrm);
   const v = collectVoice(files);
-  if (v) {
-    setVoice(v);
-    toast('음원 폴더를 인식했습니다 (음성은 다음 단계에서 재생)');
-  }
+  if (v && (await loadVoiceFiles(v))) toast('음원을 불러왔습니다');
   if (!vrm && !v) toast('.vrm 파일이나 oto.ini가 있는 폴더를 놓아 주세요');
 });
 
 // 개발 서버: 로컬 assets/ 자동 로드
-loadDevAssets().then((dev) => {
-  if (!dev) return;
-  if (dev.modelUrl) void loadModel(dev.modelUrl, `${decodeURIComponent(dev.modelUrl.split('/').pop()!)} (dev)`);
-  if (dev.voicePaths.length) $('#status-voice').textContent = `assets/ 에 ${dev.voicePaths.length}개 파일 (dev)`;
-});
+// import.meta.env.DEV 는 빌드 시 false 상수로 바뀌므로 이 블록은 배포 번들에서 통째로 제거된다
+if (import.meta.env.DEV) {
+  void loadDevAssets().then((dev) => {
+    if (!dev) return;
+    if (dev.modelUrl) void loadModel(dev.modelUrl, `${decodeURIComponent(dev.modelUrl.split('/').pop()!)} (dev)`);
+    if (dev.otoPath) void loadVoice(urlSource(DEV_ASSET_BASE), dev.otoPath, `${dev.otoPath} (dev)`);
+  });
+}
 
 // ------------------------------------------------------------------ 보조 버튼 / 설정
 
@@ -229,6 +279,7 @@ applyMute();
 muteBtn.addEventListener('click', () => {
   settings.muted = !settings.muted;
   applyMute();
+  voice.setMuted(settings.muted);
   saveSettings(settings);
 });
 
@@ -253,8 +304,37 @@ qualitySel.addEventListener('change', () => {
   saveSettings(settings);
 });
 
-// 다음 단계(음성)에서 사용
-void voice;
+// 음성 설정
+const styleSel = $<HTMLSelectElement>('#set-reading');
+const readKeysBox = $<HTMLInputElement>('#set-read-keys');
+const readResultBox = $<HTMLInputElement>('#set-read-result');
+const volumeRange = $<HTMLInputElement>('#set-volume');
+const speedRange = $<HTMLInputElement>('#set-speed');
+styleSel.value = settings.readingStyle;
+readKeysBox.checked = settings.readKeys;
+readResultBox.checked = settings.readResult;
+volumeRange.value = String(settings.volume);
+speedRange.value = String(settings.moraMs);
+const syncVoice = () => {
+  settings.readingStyle = styleSel.value as ReadingStyle;
+  settings.readKeys = readKeysBox.checked;
+  settings.readResult = readResultBox.checked;
+  settings.volume = Number(volumeRange.value);
+  settings.moraMs = Number(speedRange.value);
+  Object.assign(voice.opts, {
+    style: settings.readingStyle,
+    readKeys: settings.readKeys,
+    readResult: settings.readResult,
+    moraMs: settings.moraMs,
+  });
+  voice.setVolume(settings.volume);
+  saveSettings(settings);
+};
+for (const el of [styleSel, readKeysBox, readResultBox, volumeRange, speedRange]) el.addEventListener('change', syncVoice);
+$('#set-test-voice').addEventListener('click', () => {
+  if (!voice.loaded) return toast('음원을 먼저 불러와 주세요');
+  void voice.speak(['あだちれい', 'です']);
+});
 
 // 개발 중 콘솔 디버깅용 (프로덕션 빌드에서는 제거됨)
-if (import.meta.env.DEV) Object.assign(window, { __rei: { calc, stage } });
+if (import.meta.env.DEV) Object.assign(window, { __rei: { calc, stage, voice } });

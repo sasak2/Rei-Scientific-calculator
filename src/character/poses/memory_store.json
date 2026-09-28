@@ -1,0 +1,13 @@
+{
+  "id": "memory_store",
+  "note": "STO/M+: 오른손을 가슴에 얹고 기억",
+  "bones": {
+    "rightUpperArm": [0, 22, 72],
+    "rightLowerArm": [0, 112, 0],
+    "rightHand": [0, 0, -10],
+    "head": [7, 0, 0]
+  },
+  "expression": { "happy": 0.45 },
+  "duration": 240,
+  "easing": "easeOutCubic"
+}

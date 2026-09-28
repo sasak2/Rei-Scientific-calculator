@@ -1,0 +1,14 @@
+{
+  "id": "announce_raise",
+  "note": "= : 오른손을 높이 들어 발표",
+  "bones": {
+    "rightUpperArm": [0, 10, -40],
+    "rightLowerArm": [0, 20, 0],
+    "rightHand": [0, 0, -10],
+    "head": [-5, -8, -4],
+    "chest": [-3, 0, 0]
+  },
+  "expression": { "happy": 0.85 },
+  "duration": 280,
+  "easing": "easeOutCubic"
+}

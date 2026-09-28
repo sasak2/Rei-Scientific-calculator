@@ -1,0 +1,14 @@
+{
+  "id": "think_chin",
+  "note": "함수/메뉴: 오른손을 턱에 대고 생각",
+  "bones": {
+    "rightUpperArm": [0, 30, 62],
+    "rightLowerArm": [0, 130, 0],
+    "rightHand": [0, 0, -20],
+    "head": [8, -6, 6],
+    "spine": [2, -3, 0]
+  },
+  "expression": { "relaxed": 0.25 },
+  "duration": 240,
+  "easing": "easeOutCubic"
+}
